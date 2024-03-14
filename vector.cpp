@@ -148,11 +148,10 @@ public:
     }*/
     // WORST: N = Size, O(N)
     void right_rotate_with_steps(int n) {
-        // if N > size, we return n to its original
-        if(n > this->curSize) n = n-this->curSize;
         // Making a new array to take the new arrangement of old array elements
         int *temArr = new int[this->curSize];
-        int s = abs(this->curSize-n), j = 0;
+        // Getting rid of useless rotations and get the starting position to rotate
+        int s = this->curSize-n%this->curSize, j = 0;
         // Copying the targeted elements
         for (int i = s; i < this->curSize; ++i) { // N
             temArr[j++] = this->arr[i];
@@ -294,7 +293,7 @@ int main() {
     v.left_rotate();
     std:: cout << "\nAfter Left Rotation: \n";
     v.print();
-    v.right_rotate_with_steps(5);
+    v.right_rotate_with_steps(3);
     std::cout << "\nAfter 2 rotation steps: \n";
     v.print();
 
