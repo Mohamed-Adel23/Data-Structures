@@ -57,7 +57,7 @@ public:
             this->head = this->tail;
     }
 
-    // Delete the front element
+    // Delete the front node
     // Analysis: O(1) TIME | O(1) MEMORY
     void delete_front() {
         assert(this->length); // check the length first
@@ -83,28 +83,105 @@ public:
             // IF THERE IS NO TAIL::Here we will make a linear search of the last element
 //            Node *tem = head;
 //            while(tem->next != nullptr) tem = tem->next;
+            // Fix the next pointer of the tail
             this->tail->next = newNode;
+            // Make the whole tail points to the new NODE
             this->tail = newNode;
+            // Make the next of the new node points to NULLPTR
             newNode->next = nullptr;
         }
         ++this->length;
     }
 
+    // Delete the back node
+    // Analysis: O(N) TIME | O(1) MEMORY
+    void delete_back() {
+        assert(this->length);
+        Node *delNode = this->tail;
+        // Get The Previous Node of The Tail One.
+        Node *temNode = this->get_nth_node_front(this->length-1);
+        // Make the whole tail points to the previous NODE
+        this->tail = temNode;
+        // Make the next of the last node points to NULLPTR
+        temNode->next = nullptr;
+        // Reset the deleted node
+        delete delNode;
+        // Make the references points to NULLPTR
+        delNode = nullptr;
+        temNode = nullptr;
+        this->length--;
+    }
+
+    // Delete the nth Node
+    // Analysis: O(N) TIME | O(1) MEMORY
+    void delete_nth_node(int pos) {
+        assert(this->length);
+        assert(pos > 0 && pos <= this->length);
+        if(pos == 1) {
+            delete_front();
+            return;
+        }
+        else if(pos == this->length) {
+            delete_back();
+            return;
+        }
+        // Pick the Node and its previous one
+        Node *temNode = this->get_nth_node_front(pos),
+        *prevNode  = this->get_nth_node_front(pos-1);
+        // Fix The pointers
+        prevNode->next = temNode->next;
+        // Make The next of the deleted node NULLPTR
+        temNode->next = nullptr;
+        // Reset The Node in the memory
+        delete temNode;
+        temNode = nullptr;
+        prevNode = nullptr;
+        this->length--;
+    }
+
+    // Delete a node with a value
+    // Analysis: O(N) TIME | O(1) MEMORY
+    void delete_valued_node(int val) {
+        assert(this->length);
+        if(this->head->data == val) {
+            delete_front();
+            return;
+        }
+        else if(this->tail->data == val) {
+            delete_back();
+            return;
+        }
+        // Searching for the Node
+        Node *temNode = this->head, *prevNode {};
+        while(temNode && temNode->data != val) prevNode = temNode, temNode = temNode->next;
+        // If there is no such a node with this value
+        assert(temNode);
+        // Fix The pointers
+        prevNode->next = temNode->next;
+        // Make The next of the deleted node NULLPTR
+        temNode->next = nullptr;
+        // Reset The Node in the memory
+        delete temNode;
+        temNode = nullptr;
+        prevNode = nullptr;
+        this->length--;
+    }
+
     // Get The nth from the front
     // Analysis: O(N) TIME | O(1) MEMORY
-    int get_nth_node_front(int n) {
+    Node *get_nth_node_front(int n) {
         assert(this->length);
         Node *temHead = this->head;
         while(n > 1) {
             temHead = temHead->next;
             n--;
         }
-        return temHead->data;
+        return temHead;
     }
 
     // Get The nth from the back
     // Analysis: O(N) TIME | O(1) MEMORY
-    int get_nth_node_back(int n) {
+    Node *get_nth_node_back(int n) {
         assert(this->length);
         // change the n to be from the last
         n = this->length - n + 1;
@@ -113,7 +190,7 @@ public:
             temHead = temHead->next;
             n--;
         }
-        return temHead->data;
+        return temHead;
     }
 
     // Analysis: O(1) TIME | O(1) MEMORY
@@ -299,6 +376,24 @@ public:
         std::cout << (this->is_same(l2)?"SAME":"NOT SAME") << '\n';
         delete l2;
     }
+    void test04() {
+        this->insert_end(4);
+        this->insert_end(1);
+        this->insert_end(3);
+        this->insert_end(8);
+        this->insert_front(0);
+        this->insert_front(5);
+        this->print();
+        this->delete_front();
+        this->print();
+        this->delete_back();
+        this->print();
+        this->delete_nth_node(2);
+        this->print();
+        this->delete_valued_node(1);
+        this->print();
+        this->debug_verify_data_integrity();
+    }
 };
 
 // A Singly LinkedList with Head Only
@@ -384,19 +479,19 @@ int main() {
     std::cout << "The 4th element => " << l.get_nth_node(1) << std::endl; */
 
     // Tests
-//    Linkedlist *l = new Linkedlist();
-//    l->test03();
+    Linkedlist *l = new Linkedlist();
+    l->test04();
 //    delete l;
 
     // Linkedlist with head only
-    Linkedlist2 *l = new Linkedlist2();
-    l->add_element(5);
-    l->add_element(6);
-    l->add_element(7);
-    l->add_element(9);
-    l->print();
-    Node *node = l->get_tail_node();
-    std::cout << "\nThe Tail Node is => " << node->data << '\n';
+//    Linkedlist2 *l = new Linkedlist2();
+//    l->add_element(5);
+//    l->add_element(6);
+//    l->add_element(7);
+//    l->add_element(9);
+//    l->print();
+//    Node *node = l->get_tail_node();
+//    std::cout << "\nThe Tail Node is => " << node->data << '\n';
 
 
     return 0;
