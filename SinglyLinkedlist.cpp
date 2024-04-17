@@ -1,6 +1,6 @@
 // بسم الله الرحمن الرحيم
 // Created by BnAdel on 3/14/2024.
-// =====> LINKEDLIST <=====
+// =====> SINGLYLINKEDLIST <=====
 
 
 #include<iostream>
@@ -26,7 +26,6 @@ private:
     Node *head {};
     Node *tail {};
     int length = 0;
-    std::vector<Node*> debug_data;
 
 public:
     // To prevent crashes
@@ -243,6 +242,30 @@ public:
         return -1; // Not Found
     }
 
+    // ==================
+    // ==== Problems ====
+    // ==================
+
+    // Recursive function to reverse the nodes of LinkedList
+    // Analysis: O(N) TIME | O(1) MEMORY
+    Node *reverse_nodes(Node *cur) {
+        // 1->2->3->4->5
+        while(cur && cur->next) {
+            Node *tem = reverse_nodes(cur->next);
+            tem->next = cur;
+            cur->next = nullptr;
+        }
+        return cur;
+    }
+
+    // Swap head and tail
+    // Analysis: O(1) TIME | O(1) MEMORY
+    void swap_head_tail() {
+        Node *tem = this->head;
+        this->head = this->tail;
+        this->tail = tem;
+    }
+
     // Printing nodes
     // Analysis: O(N) TIME | O(1) MEMORY
     void print() {
@@ -394,6 +417,20 @@ public:
         this->print();
         this->debug_verify_data_integrity();
     }
+    void test05() {
+        this->insert_end(1);
+        this->insert_end(2);
+        this->insert_end(3);
+        this->insert_end(4);
+        this->insert_end(5);
+        this->print();
+        this->reverse_nodes(this->head);
+        std::cout << "\nBEFORE\n" << this->head->data << " " << this->tail->data << std::endl;
+        this->swap_head_tail();
+        std::cout << "\nAfter\n" << this->head->data << " " << this->tail->data << std::endl;
+        this->print();
+    }
+
 };
 
 // A Singly LinkedList with Head Only
@@ -480,7 +517,7 @@ int main() {
 
     // Tests
     Linkedlist *l = new Linkedlist();
-    l->test04();
+    l->test05();
 //    delete l;
 
     // Linkedlist with head only
