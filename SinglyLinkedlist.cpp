@@ -45,6 +45,14 @@ public:
         }
     }
 
+    // Remove a Node
+    // Analysis: O(1) TIME | O(1) MEMORY
+    void remove_node(Node *node) {
+        delete node;
+        node = nullptr;
+        this->length--;
+    }
+
     // Insert a new node in the front
     // Analysis: O(1) TIME | O(1) MEMORY
     void insert_front(int val) {
@@ -62,9 +70,7 @@ public:
         assert(this->length); // check the length first
         Node *delNode = this->head;
         this->head = this->head->next;
-        delete delNode;
-        delNode = nullptr;
-        this->length--;
+        remove_node(delNode);
     }
 
     // Insert a new node in the end
@@ -103,12 +109,23 @@ public:
         this->tail = temNode;
         // Make the next of the last node points to NULLPTR
         temNode->next = nullptr;
-        // Reset the deleted node
-        delete delNode;
-        // Make the references points to NULLPTR
-        delNode = nullptr;
+        // Remove the node
         temNode = nullptr;
-        this->length--;
+        remove_node(delNode);
+    }
+
+    // Insert a new Node in nth position
+    void insert_nth_node(int pos, int val) {
+        assert(pos > 0 && pos <= this->length);
+        // Create a New Node
+        Node *newNode = new Node(val);
+        // Pick the Current Node and its previous one
+        Node *curNode = this->get_nth_node_front(pos),
+        *prevNode  = this->get_nth_node_front(pos-1);
+        // Fix Pointers
+        prevNode->next = newNode;
+        newNode->next = curNode;
+        ++this->length;
     }
 
     // Delete the nth Node
@@ -125,17 +142,10 @@ public:
             return;
         }
         // Pick the Node and its previous one
-        Node *temNode = this->get_nth_node_front(pos),
+        Node *curNode = this->get_nth_node_front(pos),
         *prevNode  = this->get_nth_node_front(pos-1);
-        // Fix The pointers
-        prevNode->next = temNode->next;
-        // Make The next of the deleted node NULLPTR
-        temNode->next = nullptr;
-        // Reset The Node in the memory
-        delete temNode;
-        temNode = nullptr;
-        prevNode = nullptr;
-        this->length--;
+        // Delete and link
+        delete_node_and_link(prevNode, curNode);
     }
 
     // Delete a node with a value
@@ -155,15 +165,8 @@ public:
         while(temNode && temNode->data != val) prevNode = temNode, temNode = temNode->next;
         // If there is no such a node with this value
         assert(temNode);
-        // Fix The pointers
-        prevNode->next = temNode->next;
-        // Make The next of the deleted node NULLPTR
-        temNode->next = nullptr;
-        // Reset The Node in the memory
-        delete temNode;
-        temNode = nullptr;
-        prevNode = nullptr;
-        this->length--;
+        // Delete and link
+        delete_node_and_link(prevNode, temNode);
     }
 
     // Get The nth from the front
@@ -245,7 +248,7 @@ public:
     // ==================
     // ==== Problems ====
     // ==================
-
+    // *** Homework (2) ***
     // Recursive function to reverse the nodes of LinkedList
     // Analysis: O(N) TIME | O(1) MEMORY
     Node *reverse_nodes(Node *cur) {
@@ -258,6 +261,12 @@ public:
         return cur;
     }
 
+    // An Interface for the client to deal with reverse function
+    void reverse() {
+        Node *node = this->reverse_nodes(this->head);
+        this->swap_head_tail();
+    }
+
     // Swap head and tail
     // Analysis: O(1) TIME | O(1) MEMORY
     void swap_head_tail() {
@@ -265,6 +274,65 @@ public:
         this->head = this->tail;
         this->tail = tem;
     }
+
+    // Swap pairs in the linkedList
+    void swap_pairs() {
+        // 1->2->3->4->5
+        Node *temHead = this->head;
+        while(temHead && temHead->next) {
+            Node *nextNode = temHead->next;
+            std::swap(nextNode->data, temHead->data);
+            temHead = temHead->next->next;
+        }
+        // 2->1->4->3->5
+    }
+
+    // Delete Nodes from LinkedList directly
+    void delete_node_and_link(Node* prevNode, Node *curNode) {
+        if(curNode == this->head) delete_front();
+        else if(curNode == this->tail) delete_back();
+        else {
+            prevNode->next = curNode->next;
+            remove_node(curNode);
+        }
+    }
+
+    // Delete Even Positions
+    void delete_even_positions() {
+        int i = 1;
+        std::vector<std::pair<Node*, Node*>> delNodes;
+        Node *temHead = this->head, *prevNode {};
+        while(temHead) {
+            if(i%2 == 0) delNodes.push_back({prevNode, temHead});
+            i++;
+            prevNode = temHead;
+            temHead = temHead->next;
+        }
+        for(auto it: delNodes) delete_node_and_link(it.first, it.second);
+    }
+
+    // Insert values to be sorted
+    void insert_sorted(int val) {
+        if(this->head == nullptr && this->tail == nullptr) {
+            Node *newNode = new Node(val);
+            this->head = this->tail = newNode;
+            newNode->next = nullptr;
+            ++this->length;
+        }
+        else {
+            if(this->head->data >= val) insert_front(val);
+            else if(this->tail->data <= val) insert_end(val);
+            else {
+                Node *curNode = this->head->next;
+                int i = 2;
+                while(curNode->data < val) curNode = curNode->next, i++;
+                insert_nth_node(i, val);
+            }
+        }
+    }
+
+
+    // ================
 
     // Printing nodes
     // Analysis: O(N) TIME | O(1) MEMORY
@@ -430,7 +498,17 @@ public:
         std::cout << "\nAfter\n" << this->head->data << " " << this->tail->data << std::endl;
         this->print();
     }
-
+    void test06() {
+        this->insert_sorted(23);
+        this->insert_sorted(50);
+        this->insert_sorted(12);
+        this->insert_sorted(44);
+        this->insert_sorted(30);
+        this->insert_sorted(300);
+        this->print();
+        this->delete_even_positions();
+        this->print();
+    }
 };
 
 // A Singly LinkedList with Head Only
@@ -517,8 +595,9 @@ int main() {
 
     // Tests
     Linkedlist *l = new Linkedlist();
-    l->test05();
-//    delete l;
+    l->test06();
+
+
 
     // Linkedlist with head only
 //    Linkedlist2 *l = new Linkedlist2();
