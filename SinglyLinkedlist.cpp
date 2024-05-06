@@ -7,6 +7,7 @@
 #include <cassert>
 #include <sstream>
 #include <vector>
+#include <set>
 
 // NODE => |Data|Next| ---> |Data|Next|
 struct Node {
@@ -61,7 +62,7 @@ public:
         this->head = newNode;
         this->length++;
         if(this->length == 1)
-            this->head = this->tail;
+            this->tail = this->head;
     }
 
     // Delete the front node
@@ -331,6 +332,107 @@ public:
         }
     }
 
+    // ===============================
+    // ==== HW3 - Medium Q ====
+    // [1] Swap The nodes of head and tail
+    void swap_head_tail_nodes() {
+        assert(this->length > 1);
+        Node *prevTail = this->get_nth_node_back(2);
+        prevTail->next = this->head;
+        this->tail->next = this->head->next;
+        this->head->next = nullptr;
+        swap_head_tail();
+    }
+
+    // [2] Rotate Left
+    void left_rotate(int k) {
+        assert(this->length > 1);
+        int rotate = k % this->length;
+        // The LinkedList stays the same
+        if(rotate == 0) return;
+        // Get The nth element
+        Node *curNode = get_nth_node_front(rotate);
+        // Fix The Pointers
+        this->tail->next = this->head;
+        this->head = curNode->next;
+        curNode->next = nullptr;
+        this->tail = curNode;
+    }
+
+    // [3] Removing Duplicates
+    void remove_duplicates() {
+        assert(this->length > 1);
+        int i = 2;
+        std::set<int> st;
+        st.emplace(this->head->data);
+        Node *temHead = this->head->next;
+        while(temHead) {
+            if(st.find(temHead->data) != st.end()) {
+                // Fix the pointer to next before deleting
+                temHead = temHead->next;
+                delete_nth_node(i);
+            }
+            else {
+                st.emplace(temHead->data);
+                i++;
+                temHead = temHead->next;
+            }
+        }
+    }
+
+    // [4] Remove The last Occurrence
+    void remove_last_occurrence(int key) {
+        Node *curNode {}, *prevNode {}, *prevDelNode {}, *temHead = this->head;
+        while(temHead) {
+            if(temHead->data == key) prevDelNode = prevNode, curNode = temHead;
+            prevNode = temHead;
+            temHead = temHead->next;
+        }
+        // if delNode is null then the key value is not found
+        assert(curNode);
+        delete_node_and_link(prevDelNode, curNode);
+    }
+
+    // [5] Move To Back
+    void move_to_back(int key) {
+        Node *temHead = this->head, *prevNode {}, *flagNode {};
+        while(temHead && temHead != flagNode) {
+            if(temHead->data == key) {
+                // Make the flag points to the first element of the key
+                if(!flagNode) flagNode = temHead;
+                if(temHead == this->head) {
+                    temHead = temHead->next;
+                    this->tail->next = this->head;
+                    this->tail = this->head;
+                    this->head = this->head->next;
+                    this->tail->next = nullptr;
+                }
+                else {
+                    Node *temHead2 = temHead;
+                    temHead = temHead->next;
+                    prevNode->next = temHead2->next;
+                    this->tail->next = temHead2;
+                    this->tail = temHead2;
+                    this->tail->next = nullptr;
+                }
+            }
+            else {
+                prevNode = temHead;
+                temHead = temHead->next;
+            }
+        }
+        // If the key not found
+        assert(flagNode);
+    }
+
+    // [6] Recursive Max
+    int max_node() {
+        assert(this->length);
+        if(!this->head->next) return this->head->data;
+        Node *temHead = this->head;
+        this->head = this->head->next;
+        return std::max(temHead->data, max_node());
+    }
 
     // ================
 
@@ -415,99 +517,18 @@ public:
 //        assert()
     }
 
-    // Testing functions
+    // Testing function
     void test01() {
-        this->insert_end(12);
-        this->insert_end(56);
-        this->insert_end(60);
-        this->insert_end(98);
-        this->insert_end(41);
-        this->insert_end(37);
-        // check if the nodes representation match the expected string
-        std::string checkStr = "12 56 60 98 41 37";
-        std::string result = this->debug_to_string();
-        if(checkStr != result)
-            std::cout << "\nLinkedList: " << result << "\t" << "Expected: " << checkStr << "\n=> Unfortunately!!Your LinkedList doesn't match the expected result\n";
-        else
-            std::cout << "\nLinkedList: " << result << "\t" << "Expected: " << checkStr << "\n=> Your LinkedList matches the expected result\n";
-
-        this->debug_print_list();
-
-        this->debug_verify_data_integrity();
-    }
-    void test02() {
+        this->insert_end(6);
         this->insert_end(10);
-        this->insert_end(20);
-        this->insert_end(30);
-        this->insert_end(40);
-        this->print();
-        this->insert_front(80);
-        this->insert_front(70);
-        this->print();
-        this->delete_front();
-        this->print();
-        this->debug_verify_data_integrity();
-        std::cout << "Element at position (2) from front " << this->get_nth_node_front(2) << '\n';
-        std::cout << "Element at position (2) from back " << this->get_nth_node_back(2) << '\n';
-    }
-    void test03() {
-        Linkedlist *l2 = new Linkedlist();
-        this->insert_end(1);
-        this->insert_end(2);
-        this->insert_end(3);
-        l2->insert_end(1);
-        l2->insert_end(2);
-        l2->insert_end(3);
-        std::cout << (this->is_same(l2)?"SAME":"NOT SAME") << '\n';
-        l2->insert_front(0);
-        this->insert_end(0);
-        std::cout << (this->is_same(l2)?"SAME":"NOT SAME") << '\n';
-        l2->delete_front();
-        l2->insert_end(10);
-        std::cout << (this->is_same(l2)?"SAME":"NOT SAME") << '\n';
-        delete l2;
-    }
-    void test04() {
-        this->insert_end(4);
-        this->insert_end(1);
-        this->insert_end(3);
         this->insert_end(8);
-        this->insert_front(0);
-        this->insert_front(5);
-        this->print();
-        this->delete_front();
-        this->print();
-        this->delete_back();
-        this->print();
-        this->delete_nth_node(2);
-        this->print();
-        this->delete_valued_node(1);
-        this->print();
-        this->debug_verify_data_integrity();
-    }
-    void test05() {
+        this->insert_end(15);
+        this->insert_end(20);
         this->insert_end(1);
-        this->insert_end(2);
-        this->insert_end(3);
-        this->insert_end(4);
-        this->insert_end(5);
+        this->insert_end(99);
+        this->insert_end(12);
         this->print();
-        this->reverse_nodes(this->head);
-        std::cout << "\nBEFORE\n" << this->head->data << " " << this->tail->data << std::endl;
-        this->swap_head_tail();
-        std::cout << "\nAfter\n" << this->head->data << " " << this->tail->data << std::endl;
-        this->print();
-    }
-    void test06() {
-        this->insert_sorted(23);
-        this->insert_sorted(50);
-        this->insert_sorted(12);
-        this->insert_sorted(44);
-        this->insert_sorted(30);
-        this->insert_sorted(300);
-        this->print();
-        this->delete_even_positions();
-        this->print();
+        std::cout << "\nThe Max Node is [" << this->max_node() << "]\n";
     }
 };
 
@@ -555,59 +576,8 @@ public:
 };
 
 int main() {
-    // ===> FIRST <===
-    /*Node *n1 = new Node(5);
-    Node *n2 = new Node(2);
-    Node *n3 = new Node(4);
-    Node *n4 = new Node(6);
-    Node *n5 = new Node(9);
-
-    n1->next = n2;
-    n2->next = n3;
-    n3->next = n4;
-    n4->next = n5;
-    n5->next = nullptr;*/
-
-    // Printing Linkedlist
-    /* Linkedlist l;
-    l.print();
-    l.insert_end(5);
-    l.insert_end(6);
-    l.insert_end(2);
-    l.insert_end(1);
-    l.insert_end(8);
-    l.insert_end(100);
-    l.print();
-
-    // Searching for an element
-    int findEle = l.find(6);
-    if(findEle != -1)
-        std::cout << "Searching for a node (6) ..... FOUND :) at position [" << findEle << "]\n";
-    else
-        std::cout << "Searching for a node (6) ..... NOT FOUND :|\n";
-    // After shifting if the element found
-    l.print();
-
-    std::cout << "The Head => " << l.getHead() << std::endl;
-    std::cout << "The Tail => " << l.getTail() << std::endl;
-    std::cout << "The Length => " << l.getLength() << std::endl;
-    std::cout << "The 4th element => " << l.get_nth_node(1) << std::endl; */
-
-    // Tests
     Linkedlist *l = new Linkedlist();
-    l->test06();
-
-
-
-    // Linkedlist with head only
-//    Linkedlist2 *l = new Linkedlist2();
-//    l->add_element(5);
-//    l->add_element(6);
-//    l->add_element(7);
-//    l->add_element(9);
-//    l->print();
-//    Node *node = l->get_tail_node();
-//    std::cout << "\nThe Tail Node is => " << node->data << '\n';
+    l->test01();
 
 
     return 0;
