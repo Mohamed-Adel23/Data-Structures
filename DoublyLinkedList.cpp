@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <cassert>
+#include <vector>
+#include <bits/move_only_function.h>
 
 // NODE => NULL<---|Prev|Data|Next|---><----|Prev|Data|Next|--->NULL
 struct Node {
@@ -96,6 +98,7 @@ public:
         }
         return nullptr;
     }
+
     // This is an interface for the client (Main) to deal with
     // Because We want to deal with LinkedList Class only,
     // Assuming that We don't know that there is a class called (Node)
@@ -104,6 +107,22 @@ public:
         Node *node = search_for_node(val);
         if(node) return "Node is FOUND :)";
         return "Node is not FOUND :(";
+    }
+    // Get nth Node Forward
+    Node *get_nth_node_forward(int pos) {
+        assert(pos <= this->length);
+        Node *temHead = this->head;
+        while(temHead && pos > 1)
+            temHead = temHead->next, pos--;
+        return temHead;
+    }
+    // Get nth Node Backward
+    Node *get_nth_node_backward(int pos) {
+        assert(pos <= this->length);
+        Node *temTail = this->tail;
+        while(temTail && pos > 1)
+            temTail = temTail->prev, pos--;
+        return temTail;
     }
     // Delete the front node
     // Analysis: O(1) TIME | O(1) MEMORY
@@ -164,6 +183,112 @@ public:
         }
     }
 
+    // ==> HW1 - 2-Easy-Problems
+    // [1] Delete All Nodes with a key
+    void delete_nodes_with(int val) {
+        assert(this->getLen());
+        Node *temHead = this->head;
+        while(temHead) {
+            if(temHead->data == val) temHead = temHead->next, delete_node(val);
+            else temHead = temHead->next;
+        }
+    }
+    // [2] Is Palindrome
+    bool is_palindrome() {
+        Node *temHead = this->head, *temTail = this->tail;
+        while(temHead != temTail && temHead->next != temTail) {
+            if(temHead->data != temTail->data) return false;
+            temHead = temHead->next;
+            temTail = temTail->prev;
+        }
+        if(temHead != temTail && temHead->data != temTail->data) return false;
+        return true;
+    }
+
+    // HW2 - 4-Medium-Problems
+    // [1] Find The Middle Element (First Approach)
+    int find_middle_01() {
+        Node *temHead = this->head, *temTail = this->tail;
+        while(temHead != temTail && temHead->next != temTail) {
+            temHead = temHead->next;
+            temTail = temTail->prev;
+        }
+        if(temHead == temTail) return temHead->data;
+        return temTail->data;
+    }
+    // (Second Approach)
+    int find_middle_02() {
+        Node *slow_pointer = this->head;
+        Node *fast_pointer = this->head;
+        while(fast_pointer && fast_pointer->next) {
+            fast_pointer = fast_pointer->next->next;
+            slow_pointer = slow_pointer->next;
+        }
+        return slow_pointer->data;
+    }
+
+    // [2] Swap Forward with Backward
+    void swap_head_tail() {
+        if(this->length > 2) {
+            this->tail->next = this->head->next;
+            this->head->prev = this->tail->prev;
+            this->tail->prev->next = this->head;
+            this->head->next->prev = this->tail;
+            this->head->next = nullptr;
+            this->tail->prev = nullptr;
+        }
+        else {
+            this->tail->next = this->head;
+            this->head->prev = this->tail;
+            this->head->next = nullptr;
+            this->tail->prev = nullptr;
+        }
+        // Swapping the actual head and tail
+        std::swap(this->head, this->tail);
+    }
+    void swap_kth(int k) {
+        // If k is greater than the half
+        assert(k <= this->length/2);
+        if(k == 1)
+            swap_head_tail();
+        else if(k == this->length/2 && this->length%2 == 0) {
+            Node *node_forward = get_nth_node_forward(k);
+            Node *node_backward = get_nth_node_backward(k);
+            Node *t1 = node_forward->prev, *t2 = node_backward->next;
+            node_forward->next = t2;
+            node_backward->prev = t1;
+            node_forward->prev = node_backward;
+            node_backward->next = node_forward;
+            t1->next = node_backward;
+            t2->prev = node_forward;
+        }
+        else if(k == this->length/2 && this->length%2 == 1) {
+            Node *node_forward = get_nth_node_forward(k);
+            Node *node_backward = get_nth_node_backward(k);
+            Node *t1 = node_forward->prev, *t2 = node_backward->next, *t3 = node_forward->next;
+            node_forward->next = t2;
+            node_backward->prev = t1;
+            node_forward->prev = t3;
+            node_backward->next = t3;
+            t3->next = node_forward;
+            t3->prev = node_backward;
+            t1->next = node_backward;
+            t2->prev = node_forward;
+        }
+        else {
+            Node *node_forward = get_nth_node_forward(k);
+            Node *node_backward = get_nth_node_backward(k);
+            Node *t1 = node_forward->prev, *t2 = node_backward->next, *t3 = node_forward->next, *t4 = node_backward->prev;
+            node_forward->next = t2;
+            node_backward->prev = t1;
+            node_forward->prev = t4;
+            node_backward->next = t3;
+            t3->prev = node_backward;
+            t4->next = node_forward;
+            t1->next = node_backward;
+            t2->prev = node_forward;
+        }
+    }
 };
 
 
@@ -174,16 +299,18 @@ int main() {
     l.insert_end(30);
     l.insert_end(40);
     l.insert_end(50);
-    l.insert_front(44);
-    l.insert_front(12);
-    l.delete_front();
-    l.delete_back();
+    l.insert_end(60);
+    l.insert_end(70);
+    l.insert_end(80);
+    l.insert_end(90);
+    std::cout << "\nBEFORE\n";
     l.print();
-    std::cout << "\nSearching for a node with value (20) .... \n\t" << l.search(20) << '\n';
-    l.delete_node(20);
+    std::cout << "\nAFTER\n";
+    l.swap_kth(3);
     l.print();
-    std::cout << "\nSearching for a node with value (20) .... \n\t" << l.search(20) << '\n';
-//    l.rev_print();
+
+    //std::cout << "\nIs Palindrome: " << (l.is_palindrome()?"YES":"NO") << std::endl;
+    //std::cout << "\nThe Middle Element is [" << l.find_middle_02() << "]" << std::endl;
 
     return 0;
 }

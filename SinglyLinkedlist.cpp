@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <map>
 
 // NODE => |Data|Next| ---> |Data|Next|
 struct Node {
@@ -335,6 +336,7 @@ public:
     // ===============================
     // ==== HW3 - Medium Q ====
     // [1] Swap The nodes of head and tail
+    // TIME: O(N), SPACE: O(1)
     void swap_head_tail_nodes() {
         assert(this->length > 1);
         Node *prevTail = this->get_nth_node_back(2);
@@ -345,6 +347,7 @@ public:
     }
 
     // [2] Rotate Left
+    // TIME: O(N), SPACE: O(1)
     void left_rotate(int k) {
         assert(this->length > 1);
         int rotate = k % this->length;
@@ -360,6 +363,7 @@ public:
     }
 
     // [3] Removing Duplicates
+    // TIME: O(N), SPACE: O(1)
     void remove_duplicates() {
         assert(this->length > 1);
         int i = 2;
@@ -381,6 +385,7 @@ public:
     }
 
     // [4] Remove The last Occurrence
+    // TIME: O(N), SPACE: O(1)
     void remove_last_occurrence(int key) {
         Node *curNode {}, *prevNode {}, *prevDelNode {}, *temHead = this->head;
         while(temHead) {
@@ -394,6 +399,7 @@ public:
     }
 
     // [5] Move To Back
+    // TIME: O(N), SPACE: O(1)
     void move_to_back(int key) {
         Node *temHead = this->head, *prevNode {}, *flagNode {};
         while(temHead && temHead != flagNode) {
@@ -426,6 +432,7 @@ public:
     }
 
     // [6] Recursive Max
+    // TIME: O(N), SPACE: O(N)
     int max_node() {
         assert(this->length);
         if(!this->head->next) return this->head->data;
@@ -435,6 +442,83 @@ public:
     }
 
     // ================
+
+    // ======================
+    // ==== HW4 - Hard Q ====
+    // [1] Arrange Odd & Even Nodes
+    void arrange_odd_even() {
+        assert(this->length >= 3);
+        int i = 3;
+        Node *oddPosNode = this->head, *prevNode = this->head->next, *curNode = this->head->next->next;
+        while(curNode) {
+            if(i%2 == 0) {
+                prevNode = curNode;
+                curNode = curNode->next;
+                i++;
+                continue;
+            }
+            // Make a copy from the current node
+            Node *temCurNode = curNode;
+            curNode = curNode->next;
+            // Fix The Pointers
+            prevNode->next = temCurNode->next;
+            temCurNode->next = oddPosNode->next;
+            oddPosNode->next = temCurNode;
+            // Fix Odd Pointer to point on the latest odd Node
+            oddPosNode = temCurNode;
+            i++;
+        }
+    }
+
+    // [2] Insert Alternating
+    Node *insert_alternate(Node *head1, Node *head2) {
+        Node *newHead = head1, *tailNode {};
+        while(head1 && head2) {
+            Node *tem1 = head1, *tem2 = head2;
+            // Move The Head First
+            head1 = head1->next;
+            head2 = head2->next;
+            // Fix The Pointers of Two Lists
+            tem2->next = tem1->next;
+            tem1->next = tem2;
+            tailNode = tem2;
+        }
+        if(head1)
+            tailNode->next = head1;
+        else if(head2)
+            tailNode->next = head2;
+        return newHead;
+    }
+    // Interface for Insert Alternating
+    Linkedlist *insert_alternate(Linkedlist *list2) {
+        assert(this->length && list2->length);
+        Node *newHead = insert_alternate(this->head, list2->head);
+        Linkedlist *newList = new Linkedlist();
+        while(newHead) newList->insert_end(newHead->data), newHead = newHead->next;
+        return newList;
+    }
+
+    // [3] Remove Repeated, if the node is repeated,
+    // we'll remove all node with this value
+    void check_duplicate_to_delete(std::map<int, int> mp) {
+        for(auto it: mp) {
+            if(it.second > 1) {
+                while (it.second) {
+                    delete_valued_node(it.first);
+                    it.second--;
+                }
+            }
+        }
+    }
+    void remove_repeated() {
+        std::map<int, int> mp;
+        Node *temHead = this->head;
+        while(temHead) {
+            mp[temHead->data]++;
+            temHead = temHead->next;
+        }
+        check_duplicate_to_delete(mp);
+    }
 
     // Printing nodes
     // Analysis: O(N) TIME | O(1) MEMORY
@@ -519,16 +603,19 @@ public:
 
     // Testing function
     void test01() {
-        this->insert_end(6);
-        this->insert_end(10);
-        this->insert_end(8);
-        this->insert_end(15);
-        this->insert_end(20);
         this->insert_end(1);
-        this->insert_end(99);
-        this->insert_end(12);
+        this->insert_end(2);
+        this->insert_end(3);
+        this->insert_end(5);
+        this->insert_end(3);
+        this->insert_end(4);
+        this->insert_end(2);
+        this->insert_end(1);
+        std::cout << "BEFORE\n";
         this->print();
-        std::cout << "\nThe Max Node is [" << this->max_node() << "]\n";
+        this->remove_repeated();
+        std::cout << "AFTER\n";
+        this->print();
     }
 };
 
@@ -576,9 +663,32 @@ public:
 };
 
 int main() {
+    Linkedlist *list1 = new Linkedlist();
+    list1->insert_end(1);
+    list1->insert_end(2);
+//    list1->insert_end(3);
+//    list1->insert_end(4);
+
+    std::cout << "LIST(1)\n";
+    list1->print();
+
+    Linkedlist *list2 = new Linkedlist();
+    list2->insert_end(5);
+    list2->insert_end(6);
+    list2->insert_end(7);
+    list2->insert_end(8);
+
+    std::cout << "LIST(2)\n";
+    list2->print();
+
+    Linkedlist *newList = list1->insert_alternate(list2);
+
+    std::cout << "NEWLIST\n";
+    newList->print();
+
+    std::cout << '\n';
     Linkedlist *l = new Linkedlist();
     l->test01();
-
 
     return 0;
 }
